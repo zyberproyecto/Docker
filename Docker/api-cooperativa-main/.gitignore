@@ -1,0 +1,22 @@
+# Laravel / PHP
+/vendor/
+/node_modules/
+.env
+.env.*
+!.env.example
+/public/storage
+/storage/*.key
+/storage/*.log
+storage/*.log
+/storage/logs/
+/bootstrap/cache/*
+/composer.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs / SO
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

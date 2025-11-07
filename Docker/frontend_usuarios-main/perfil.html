@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Mis datos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="module" src="js/perfil.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>Datos personales</h2>
+
+      <!-- Evita fallback GET si no carga el JS -->
+      <form id="f" class="form" action="javascript:void(0)" autocomplete="on" novalidate>
+        <div id="m" class="msg" aria-live="polite"></div>
+
+        <label>Ocupación</label>
+        <input name="ocupacion" required maxlength="191" autocomplete="organization-title" />
+
+        <label>Ingresos del núcleo (UYU)</label>
+        <input type="number" name="ingresos_nucleo_familiar" required min="0" step="1" inputmode="numeric" />
+
+        <label>Cantidad de integrantes</label>
+        <input type="number" name="integrantes_familia" required min="1" step="1" inputmode="numeric" />
+
+        <label>Contacto (tel alternativo)</label>
+        <input name="contacto" required maxlength="191" type="tel" autocomplete="tel" />
+
+        <label>Dirección</label>
+        <input name="direccion" required maxlength="191" autocomplete="street-address" />
+
+        <label>
+          <input type="checkbox" name="acepta_declaracion_jurada" required />
+          Acepto la Declaración Jurada
+        </label>
+
+        <label>
+          <input type="checkbox" name="acepta_reglamento_interno" required />
+          Acepto el Reglamento interno
+        </label>
+
+        <button class="btn" type="submit">Guardar</button>
+
+        <noscript>
+          <p class="msg" style="color:#b91c1c">Para guardar tus datos necesitás habilitar JavaScript.</p>
+        </noscript>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class UnidadesController extends Controller
+{
+    public function index(Request $r)
+    {
+        $estado = strtolower($r->query('estado', 'todas'));
+        $q = DB::table('unidades')->orderBy('codigo');
+
+        if (in_array($estado, ['disponible','asignada','entregada'], true)) {
+            $q->where('estado_unidad', $estado);
+        }
+
+        $unidades = $q->paginate(20);
+        return view('unidades.index', compact('unidades', 'estado'));
+    }
+
+    public function show($id)
+    {
+        $u = DB::table('unidades')->where('id', $id)->first();
+        abort_if(!$u, 404);
+
+        $asignacion = DB::table('usuario_unidad as uu')
+            ->leftJoin('usuarios as usr', 'usr.ci_usuario', '=', 'uu.ci_usuario')
+            ->where('uu.unidad_id', $id)
+            ->where('uu.estado', 'activa')
+            ->select(
+                'uu.*',
+                'usr.primer_nombre',
+                'usr.primer_apellido',
+                'usr.email',
+                'usr.telefono',
+                'usr.estado_registro'
+            )
+            ->first();
+
+        return view('unidades.show', compact('u', 'asignacion'));
+    }
+
+    public function asignar(Request $r)
+    {
+        $data = $r->validate([
+            'ci_usuario' => ['required','string','max:20'],
+            'unidad_id'  => ['required','integer','min:1'],
+            'nota'       => ['nullable','string','max:5000'],
+        ]);
+
+        $ci = preg_replace('/\D/', '', (string)$data['ci_usuario']);
+  
+        if (!preg_match('/^\d{7,8}$/', $ci)) {
+            return back()->with('error', 'La CI debe tener 7 u 8 dígitos (solo números).')->withInput();
+        }
+
+        try {
+            $ok = DB::transaction(function () use ($ci, $data) {
+
+                $unidad = DB::table('unidades')->lockForUpdate()->where('id', $data['unidad_id'])->first();
+                if (!$unidad) throw new \RuntimeException('La unidad no existe.');
+                if ((string)$unidad->estado_unidad !== 'disponible') {
+                    throw new \RuntimeException('La unidad no está disponible.');
+                }
+
+                $usr = DB::table('usuarios')->where('ci_usuario', $ci)->first();
+                if (!$usr) throw new \RuntimeException('No existe un usuario con esa CI.');
+
+                $perfil = DB::table('usuarios_perfil')
+                    ->where('ci_usuario', $ci)
+                    ->where('estado_revision', 'aprobado')
+                    ->first();
+                if (!$perfil) throw new \RuntimeException('Perfil de socio no está aprobado.');
+
+                $comp = DB::table('comprobantes')
+                    ->where('ci_usuario', $ci)
+                    ->where('tipo', 'aporte_inicial')
+                    ->where('estado', 'aprobado')
+                    ->orderByDesc('id')
+                    ->first();
+                if (!$comp) throw new \RuntimeException('Aporte inicial no está aprobado.');
+
+                $yaTiene = DB::table('usuario_unidad')
+                    ->where('ci_usuario', $ci)
+                    ->where('estado', 'activa')
+                    ->exists();
+                if ($yaTiene) throw new \RuntimeException('El socio ya tiene una asignación activa.');
+
+                $ocupada = DB::table('usuario_unidad')
+                    ->where('unidad_id', $data['unidad_id'])
+                    ->where('estado', 'activa')
+                    ->exists();
+                if ($ocupada) throw new \RuntimeException('La unidad ya está asignada.');
+
+                DB::table('usuario_unidad')->insert([
+                    'ci_usuario'       => $ci,
+                    'unidad_id'        => $data['unidad_id'],
+                    'fecha_asignacion' => now()->toDateString(),
+                    'estado'           => 'activa',
+                    'nota_admin'       => $data['nota'] ?? null,
+                    'created_at'       => now(),
+                    'updated_at'       => now(),
+                ]);
+
+                DB::table('unidades')
+                    ->where('id', $data['unidad_id'])
+                    ->update([
+                        'estado_unidad' => 'asignada',
+                        'updated_at'    => now(),
+                    ]);
+
+                return true;
+            });
+
+            if ($ok) {
+                return redirect()
+                    ->route('admin.unidades.show', $data['unidad_id'])
+                    ->with('ok', 'Unidad asignada correctamente.');
+            }
+
+            return back()->with('error', 'No se pudo asignar la unidad.')->withInput();
+
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    public function liberar($id, Request $r)
+    {
+        try {
+            $ok = DB::transaction(function () use ($id, $r) {
+
+                $asig = DB::table('usuario_unidad')->lockForUpdate()->where('id', $id)->first();
+                if (!$asig) throw new \RuntimeException('No se encontró la asignación.');
+                if ((string)$asig->estado !== 'activa') return true;
+
+                $nota = $r->input('nota');
+
+                DB::table('usuario_unidad')->where('id', $id)->update([
+                    'estado'     => 'liberada',
+                    'nota_admin' => $nota ?: $asig->nota_admin,
+                    'updated_at' => now(),
+                ]);
+
+                $tieneActiva = DB::table('usuario_unidad')
+                    ->where('unidad_id', $asig->unidad_id)
+                    ->where('estado', 'activa')
+                    ->exists();
+
+                if (!$tieneActiva) {
+                    DB::table('unidades')->where('id', $asig->unidad_id)->update([
+                        'estado_unidad' => 'disponible',
+                        'updated_at'    => now(),
+                    ]);
+                }
+
+                return true;
+            });
+
+            return back()->with('ok', $ok ? 'Asignación liberada.' : 'No se pudo liberar la asignación.');
+
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+}

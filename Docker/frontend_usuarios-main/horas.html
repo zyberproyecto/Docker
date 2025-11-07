@@ -1,0 +1,27 @@
+<!doctype html><html lang="es"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Horas</title>
+<link rel="stylesheet" href="css/styles.css">
+<script type="module" src="js/horas.js" defer></script>
+</head><body>
+<div class="container">
+  <div class="card">
+    <h2>Registrar horas</h2>
+    <form id="fh" class="form">
+      <label>Semana (inicio — lunes)</label>
+      <input type="date" name="semana_inicio" required>
+      <label>Horas reportadas (máx 21)</label>
+      <input type="number" name="horas_reportadas" min="0" max="21" step="1" required>
+      <label>Motivo si reportás menos de 21 h</label>
+      <textarea name="motivo" rows="3" placeholder="Obligatorio si &lt; 21"></textarea>
+      <button class="btn">Registrar</button>
+      <p id="mh" class="msg"></p>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Mis semanas</h2>
+    <div id="tabla" class="table"></div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  api-usuarios:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: api-usuarios
+    restart: unless-stopped
+    ports:
+      - "8001:80"
+    volumes:
+      - ./api-usuarios-main:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+
+  api-cooperativa:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: api-cooperativa
+    restart: unless-stopped
+    ports:
+      - "8002:80"
+    volumes:
+      - ./api-cooperativa-main:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+
+  frontend-usuarios:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: frontend-usuarios
+    restart: unless-stopped
+    ports:
+      - "5500:80"
+    volumes:
+      - ./frontend_usuarios-main:/var/www/html
+
+  landing-page:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: landing-page
+    restart: unless-stopped
+    ports:
+      - "8040:80"
+    volumes:
+      - ./landing_page-main:/var/www/html
+
+  backoffice:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: backoffice
+    restart: unless-stopped
+    ports:
+      - "8050:80"
+    volumes:
+      - ./app-backoffice-main:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true

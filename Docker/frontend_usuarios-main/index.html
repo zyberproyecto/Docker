@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Cooperativa — Inicio</title>
+  <link rel="stylesheet" href="css/styles.css">
+<script type="module" src="js/home.js?v=fix1" defer></script>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Bienvenido/a <span id="nombre-socio"></span></h1>
+      <p>Acá vas a encontrar tu estado y los pasos pendientes.</p>
+    </div>
+
+    <div id="gate" class="grid-2">
+      <div class="card">
+        <h3>Aporte inicial</h3>
+        <p id="ai-estado" class="msg ok">Verificando…</p>
+
+        <form id="form-ai" class="form" enctype="multipart/form-data">
+          <label>Monto (UYU)</label>
+          <input type="number" step="0.01" min="0" name="monto" required>
+
+          <label>Comprobante (PDF/JPG/PNG)</label>
+          <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
+
+          <button class="btn">Subir</button>
+          <p class="msg" data-msg-ai></p>
+        </form>
+
+      </div>
+
+      <div class="card">
+        <h3>Datos personales</h3>
+        <p id="pf-estado" class="msg ok">Verificando…</p>
+        <a class="btn secondary" href="perfil.html">Completar / revisar datos</a>
+      </div>
+    </div>
+
+    <div id="atajos" class="card hidden">
+      <h3>Acciones rápidas</h3>
+      <div class="grid-2">
+        <a class="btn" href="pagos.html">Subir comprobante mensual</a>
+        <a class="btn secondary" href="horas.html">Cargar horas</a>
+         <a class="btn secondary" href="perfil.html">Ver / editar mis datos</a>
+      </div>
+    </div>
+
+      <div class="card" id="card-unidad" hidden>
+      <h3>Mi unidad</h3>
+      <p id="un-estado" class="msg ok">Verificando…</p>
+      <div id="un-detalle" class="grid-cols-2"></div>
+    </div>
+    
+    <div class="card">
+      <h3>Novedades</h3>
+      <p>Próximamente…</p>
+    </div>
+  </div>
+</body>
+</html>
